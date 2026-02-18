@@ -1,0 +1,6 @@
+target/
+*.o
+*.swo
+*.swp
+gmon.out
+*.d
