@@ -17,28 +17,29 @@
 
 
 gcc life.c -o life # -pg
-valgrind -s --leak-check=full --show-leak-kinds=all ./life -s 20 -c 20 -i 010000000001000000000010000000010000000011100000000100000000 > life.out
+valgrind -s --leak-check=full --show-leak-kinds=all ./life -s 20 -c 20 -i
+010000000001000000000010000000010000000011100000000100000000 > life.out
 ./life -s 3 -c 3 -i 011001010
 ./life -s 5 -c 10 -i 011001010110101111
-./life -s 20 -c 10 -i 011001010110101111011001010110101111010111101010101111100110111
-Glider and blinker:
-./life -s 20 -c 20 -i 010000000001000000000010000000010000000011100000000100000000
-Bee-hive and loaf:
-./life -s 10 -c 100 -i 010000000001000000000010000000010000000011100000000100000000 > life.out
+./life -s 20 -c 10 -i
+011001010110101111011001010110101111010111101010101111100110111 Glider and
+blinker:
+./life -s 20 -c 20 -i
+010000000001000000000010000000010000000011100000000100000000 Bee-hive and loaf:
+./life -s 10 -c 100 -i
+010000000001000000000010000000010000000011100000000100000000 > life.out
 */
 
 #include <assert.h>
 #include <getopt.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 
 char *world_history = NULL;
 
-void
-init_step (const unsigned long size, const char *init_world)
-{
+void init_step(const unsigned long size, const char *init_world) {
   bool completely_uninitialized = false;
   unsigned long init_size = 0;
   if (NULL != init_world)
@@ -59,15 +60,15 @@ init_step (const unsigned long size, const char *init_world)
     } else if (0 == strncmp("\0", init_world + i, 1)) {
       return;
     } else {
-      fprintf(stderr, "Invalid initial state"); // FIXME: show the offending character.
+      fprintf(stderr,
+              "Invalid initial state"); // FIXME: show the offending character.
       exit(EXIT_FAILURE);
     }
   }
 }
 
-char
-get_value (const unsigned long size, const unsigned long step_number, const unsigned long x, const unsigned long y)
-{
+char get_value(const unsigned long size, const unsigned long step_number,
+               const unsigned long x, const unsigned long y) {
   // FIXME assert x >= 0
   // FIXME assert y >= 0
   // FIXME assert x < size
@@ -75,9 +76,8 @@ get_value (const unsigned long size, const unsigned long step_number, const unsi
   return world_history[size * size * step_number + y * size + x];
 }
 
-void
-set_value (const unsigned long size, const unsigned long step_number, const unsigned long x, const unsigned long y, const char value)
-{
+void set_value(const unsigned long size, const unsigned long step_number,
+               const unsigned long x, const unsigned long y, const char value) {
   // FIXME assert x >= 0
   // FIXME assert y >= 0
   // FIXME assert x < size
@@ -85,9 +85,9 @@ set_value (const unsigned long size, const unsigned long step_number, const unsi
   world_history[size * size * step_number + y * size + x] = value;
 }
 
-char
-neighbour_state (const unsigned long size, const unsigned long step_number, const unsigned long x, const unsigned long y, const unsigned char neighbour_offset)
-{
+char neighbour_state(const unsigned long size, const unsigned long step_number,
+                     const unsigned long x, const unsigned long y,
+                     const unsigned char neighbour_offset) {
   /* Numberings of the neighbours of the cell labeled "C":
         _ _ _
        |0|1|2|
@@ -97,76 +97,76 @@ neighbour_state (const unsigned long size, const unsigned long step_number, cons
        |5|6|7|
         - - -
   */
-  char result = -2;
+  char result = (char)-2;
 
   switch (neighbour_offset) {
-    case 0:
-      if (0 == x || 0 == y) {
-        result = -1;
-      } else {
-        result = get_value(size, step_number, x - 1, y - 1);
-      }
-      break;
-    case 1:
-      if (0 == y) {
-        result = -1;
-      } else {
-        result = get_value(size, step_number, x, y - 1);
-      }
-      break;
-    case 2:
-      if (size - 1 == x || 0 == y) {
-        result = -1;
-      } else {
-        result = get_value(size, step_number, x + 1, y - 1);
-      }
-      break;
-    case 3:
-      if (0 == x) {
-        result = -1;
-      } else {
-        result = get_value(size, step_number, x - 1, y);
-      }
-      break;
-    case 4:
-      if (size - 1 == x) {
-        result = -1;
-      } else {
-        result = get_value(size, step_number, x + 1, y);
-      }
-      break;
-    case 5:
-      if (0 == x || size - 1 == y) {
-        result = -1;
-      } else {
-        result = get_value(size, step_number, x - 1, y + 1);
-      }
-      break;
-    case 6:
-      if (size - 1 == y) {
-        result = -1;
-      } else {
-        result = get_value(size, step_number, x, y + 1);
-      }
-      break;
-    case 7:
-      if (size - 1 == x || size - 1 == y) {
-        result = -1;
-      } else {
-        result = get_value(size, step_number, x + 1, y + 1);
-      }
-      break;
-    default:
-      // FIXME terminate with error message.
-      break;
+  case 0:
+    if (0 == x || 0 == y) {
+      result = (char)-1;
+    } else {
+      result = get_value(size, step_number, x - 1, y - 1);
+    }
+    break;
+  case 1:
+    if (0 == y) {
+      result = (char)-1;
+    } else {
+      result = get_value(size, step_number, x, y - 1);
+    }
+    break;
+  case 2:
+    if (size - 1 == x || 0 == y) {
+      result = (char)-1;
+    } else {
+      result = get_value(size, step_number, x + 1, y - 1);
+    }
+    break;
+  case 3:
+    if (0 == x) {
+      result = (char)-1;
+    } else {
+      result = get_value(size, step_number, x - 1, y);
+    }
+    break;
+  case 4:
+    if (size - 1 == x) {
+      result = (char)-1;
+    } else {
+      result = get_value(size, step_number, x + 1, y);
+    }
+    break;
+  case 5:
+    if (0 == x || size - 1 == y) {
+      result = (char)-1;
+    } else {
+      result = get_value(size, step_number, x - 1, y + 1);
+    }
+    break;
+  case 6:
+    if (size - 1 == y) {
+      result = (char)-1;
+    } else {
+      result = get_value(size, step_number, x, y + 1);
+    }
+    break;
+  case 7:
+    if (size - 1 == x || size - 1 == y) {
+      result = (char)-1;
+    } else {
+      result = get_value(size, step_number, x + 1, y + 1);
+    }
+    break;
+  default:
+    // FIXME terminate with error message.
+    break;
   }
 
   return result;
 }
 
-unsigned char
-living_neighbours (const unsigned long size, const unsigned long step_number, const unsigned long x, const unsigned long y)
-{
+unsigned char living_neighbours(const unsigned long size,
+                                const unsigned long step_number,
+                                const unsigned long x, const unsigned long y) {
   // FIXME assert x >= 0
   // FIXME assert y >= 0
   // FIXME assert x < size
@@ -182,9 +182,7 @@ living_neighbours (const unsigned long size, const unsigned long step_number, co
   return result;
 }
 
-void
-step (const unsigned long size, const unsigned long step_number)
-{
+void step(const unsigned long size, const unsigned long step_number) {
   for (unsigned long y = 0; y < size; y++) {
     for (unsigned long x = 0; x < size; x++) {
       const unsigned char ln = living_neighbours(size, step_number - 1, x, y);
@@ -208,18 +206,16 @@ step (const unsigned long size, const unsigned long step_number)
   }
 }
 
-void
-print_world (const unsigned long size, const unsigned long step_number)
-{
-/*
-  for (int y = 0; y < size; y++) {
-    for (int x = 0; x < size; x++) {
-      int v = get_value(size, step_number, x, y);
-      printf("%d", v);
+void print_world(const unsigned long size, const unsigned long step_number) {
+  /*
+    for (int y = 0; y < size; y++) {
+      for (int x = 0; x < size; x++) {
+        int v = get_value(size, step_number, x, y);
+        printf("%d", v);
+      }
+      printf("\n");
     }
-    printf("\n");
-  }
-*/
+  */
   for (unsigned long y = 0; y < size; y++) {
     for (unsigned long x = 0; x < size; x++) {
       char v = get_value(size, step_number, x, y);
@@ -232,9 +228,7 @@ print_world (const unsigned long size, const unsigned long step_number)
   }
 }
 
-int
-main (int argc, char* const* argv)
-{
+int main(int argc, char *const *argv) {
   unsigned long size = 3;
   char *init_world = NULL;
   unsigned long cycles = 3;
