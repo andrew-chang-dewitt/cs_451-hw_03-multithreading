@@ -40,9 +40,8 @@ SRC_DIR   := $(LOC)
 DEP_FLAGS  = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
 
 NAMES     := life multithreaded_life granular_multithreaded_life
-SRCS      := $(NAMES:%=$(SRC_DIR)/%.c)
+SRCS      := $(wildcard $(SRC_DIR)/*.c)
 BINS      := $(NAMES:%=$(BIN_DIR)/%)
-DEPS      := $(NAMES:%=$(DEP_DIR)/%.d)
 OBJS       = $(patsubst $(SRC_DIR)/%.h,$(OBJ_DIR)/%.o,$(wildcard $(SRC_DIR)/*.h))
 
 
@@ -60,59 +59,46 @@ multi: $(BIN_DIR)/multithreaded_life
 gran: $(BIN_DIR)/granular_multithreaded_life
 
 
-list:
-	@echo ""
-	@echo $(TGT_DIR)
-	@echo $(OUT_DIR)
-	@echo $(BIN_DIR)
-	@echo $(OBJ_DIR)
-	@echo $(DEP_DIR)
-	@echo $(NAMES)
-	@echo $(SRCS)
-	@echo $(BINS)
-	@echo $(DEPS)
-	@echo $(OBJS)
-	@echo ""
+$(BIN_DIR) $(OBJ_DIR) $(DEP_DIR): %:
+	@mkdir -p $@
 
 
-# disable builtin implicit rules
-%.o : %.c
-%.o : %.cc
-%.o : %.C
-%.o : %.cpp
-%.o : %.p
-%.o : %.web
-%.o : %.f
-%.o : %.F
-%.o : %.r
-%.o : %.l
-%.o : %.ym
-%.o : %.s
-%.o : %.S
-%.o : %.mod
-# automatically generate dependencies, from
-# https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#tldr
-$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(DEP_DIR)/%.d | $(DEP_DIR)
-	$(CC) $(DEP_FLAGS) $(CFLAGS) $< -o $@
-
-
+DEPS      := $(SRCS:$(SRC_DIR)/%.c=$(DEP_DIR)/%.d)
 $(DEPS):
 
 
 include $(wildcard $(DEPS))
 
 
-# uses secondary expansion to allow grabbing executable name
-# from target in $(BINS) see
-# https://www.gnu.org/software/make/manual/html_node/Secondary-Expansion.html
-# .SECONDEXPANSION:
+list:
+	@echo ""
+	@echo "    SRC_DIR = $(SRC_DIR)"
+	@echo "    TGT_DIR = $(TGT_DIR)"
+	@echo "    OUT_DIR = $(OUT_DIR)"
+	@echo "    BIN_DIR = $(BIN_DIR)"
+	@echo "    OBJ_DIR = $(OBJ_DIR)"
+	@echo "    DEP_DIR = $(DEP_DIR)"
+	@echo "    NAMES   = $(NAMES)"
+	@echo "    SRCS    = $(SRCS)"
+	@echo "    BINS    = $(BINS)"
+	@echo "    DEPS    = $(DEPS)"
+	@echo "    OBJS    = $(OBJS)"
+	@echo ""
+
+
+# automatically generate dependencies, from
+# https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#tldr
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(DEP_DIR)/%.d | $(DEP_DIR)
+	@echo "compiling dependency $@ from $^..."
+	$(CC) $(DEP_FLAGS) $(CFLAGS) -c $< -o $@
+	@echo "...dependency $@ built."
+
+
+
 $(BIN_DIR)/%: $(SRC_DIR)/%.c $(DEP_DIR)/%.d $(OBJS) | $(BIN_DIR) $(DEP_DIR) $(OBJ_DIR)
 	@echo "building binary $@ from $^..."
-	$(CC) $(CFLAGS) $(CMPT_FLAGS) $< $(OBJS) -o $@
+	$(CC) $(CFLAGS) $(CMPT_FLAGS) $< $($<:%.c=%.h) $(OBJS) -o $@
 	@echo "... $@ built."
-
-$(BIN_DIR) $(OBJ_DIR) $(DEP_DIR): %:
-	@mkdir -p $@
 
 clean:
 	rm -rf $(TGT_DIR)

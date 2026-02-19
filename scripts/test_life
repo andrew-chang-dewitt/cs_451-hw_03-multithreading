@@ -18,10 +18,10 @@ args=" -s 3 -c 5 -i 011110010"
 echo "Building life binaries..."
 echo ""
 cd $life_dir
-make list && make -d DBG=true life || x=$? printf "failed while building, bailing...\n\n\n" && exit $x
+make list && make -d DBG=true life || { x=$? printf "failed while building, bailing...\n\n\n"; exit $x; }
 echo "Executing life w/ args '$args'..."
 echo ""
-$life_dbg $args || x=$? printf "failed while executing '$args', bailing...\n\n\n" && exit $x
+$life_dbg $args || { x=$? printf "failed while executing '$args', bailing...\n\n\n"; exit $x; }
 echo ""
 echo "done."
 echo ""
