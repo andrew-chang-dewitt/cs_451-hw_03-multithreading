@@ -2,26 +2,32 @@ this'll be something like this for the main fn:
 
 ```
 // ... same arg parsing & setup
+//
 // calc part_size from G as size divided by int sqrt of G
 // make array of part start offsets for faster lookup later
 // make arr of border cell offsets & store num of border cells
 // for each step:
 //     for each part (1..G):
-//         call step_part(...), modifying next step state in place
+//         call part_step(...), modifying next step state in place
 //     for each border cell:
 //         apply life algo modifying next step state in place
 //     print newly created step state
+//
+// ...finish as before
 ```
 
-which requires replacing step(size, step_num) w/ similar fn step_part(world_size, step_num, part_size, part_num) that does the following:
+which requires replacing `step(size, step_num)` w/ similar fn
+`part_step(world_size, step_num, part_size, part_num)` that does the following:
 
 ```
-// get ptr to start of part using get_part_start()
+// get ptr to start of part using part_get_start()
 // increment part start ptr by 1 row (to skip top border
 // iterate through part_size - 2 rows (skipping bottom border:
 //     iterate from cell 1 through cell part_size - 1 (skipping left & right borders):
 //         ...apply life algo modifying associated part in place
 ```
+
+some deeper exploration of how to calculate pats & merge results
 
 ```
 ## ex 1: 6 x 6 world, G = 4
@@ -131,3 +137,11 @@ for top in 0..parts_per_size:
         border_offsets[next_offset_idx] = start + i
         next_offset_idx++
 ```
+
+for now might be able to just have all partition threads just clobber away at
+the history state since they all operate on disjoint subsets of it, then only
+when all done begin the merge loop for border calculations.
+
+ideally, would like some way of orchestrating each step to signal main thread
+that all parts of the next step are done so main thread can mege parts in
+parallel
