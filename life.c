@@ -30,62 +30,33 @@ blinker:
 010000000001000000000010000000010000000011100000000100000000 > life.out
 */
 
-#include <assert.h>
-#include <getopt.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
+#ifndef ARGH
+#include "args.h"
+#endif
+#ifndef WORLDH
 #include "world.h"
+#endif
 
 int main(int argc, char *const *argv) {
-  unsigned long size = 3;
-  char *init_world = NULL;
-  unsigned long cycles = 3;
+  Config cfg = parse_args(argc, argv);
+  char *world_history = init_world(cfg.size, cfg.cycles, cfg.init_world);
 
-  int option;
-  while ((option = getopt(argc, argv, "s:i:c:")) != -1) {
-    switch (option) {
-    case 'i':
-      init_world = malloc(strlen(optarg) + 1);
-      strcpy(init_world, optarg);
-      break;
-    case 's':
-      size = strtoul(optarg, NULL, 10);
-      break;
-    case 'c':
-      cycles = strtoul(optarg, NULL, 10);
-      break;
-    default:
-      // FIXME: print error message.
-      exit(EXIT_FAILURE);
-      break;
-    }
-  }
-
-  assert(size > 1);
-  assert(cycles > 1);
-
-  char *world_history = malloc(size * size * cycles);
-
-  for (unsigned long i = 0; i < size * size * cycles; i++) {
-    world_history[i] = 0;
-  }
-
-  init_step(world_history, size, init_world);
-  print_world(world_history, size, 0);
+  print_world(world_history, cfg.size, 0);
   printf("\n");
 
-  for (unsigned long i = 1; i < cycles; i++) {
-    step(world_history + (i - 1) * size * size, size,
-         world_history + i * size * size);
-    print_world(world_history, size, i);
+  for (unsigned long i = 1; i < cfg.cycles; i++) {
+    step(world_history + (i - 1) * cfg.size * cfg.size, cfg.size,
+         world_history + i * cfg.size * cfg.size);
+    print_world(world_history, cfg.size, i);
     printf("\n");
   }
 
   free(world_history);
-  free(init_world);
+  free(cfg.init_world);
 
   return EXIT_SUCCESS;
 }

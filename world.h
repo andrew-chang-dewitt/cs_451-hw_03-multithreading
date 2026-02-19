@@ -1,7 +1,3 @@
-// fix implicit dprintf declaration
-// from: https://stackoverflow.com/a/39671290
-#define _POSIX_C_SOURCE 200809L
-
 #include <assert.h>
 #include <getopt.h>
 #include <stdbool.h>
@@ -11,9 +7,8 @@
 
 #define WORLDH
 
-// setup step 0 state in world history
-void init_step(char *world_history, const unsigned long size,
-               const char *init_world);
+// setup world history state obj
+char *init_world(unsigned long size, unsigned long cycles, char *init_world);
 // visualize world as rows (space separated) of 0s or 1s for each cell (comma
 // separated w/in rows)
 void print_world(char *world_history, const unsigned long size,

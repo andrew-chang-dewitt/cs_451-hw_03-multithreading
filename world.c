@@ -14,6 +14,41 @@
 #include "world.h"
 #endif
 
+char *init_world(unsigned long size, unsigned long cycles, char *init_world) {
+  bool completely_uninitialized = false;
+  unsigned long init_size = 0;
+  if (NULL != init_world)
+    init_size = strlen(init_world);
+  else
+    completely_uninitialized = true;
+
+  char *world_history = malloc(size * size * cycles);
+  for (unsigned long i = 0; i < size * size * cycles; i++) {
+    world_history[i] = 0;
+  }
+
+  for (unsigned long i = 0; i < size * size; i++) {
+    if (completely_uninitialized || i >= init_size) {
+      world_history[i] = 0;
+      continue;
+    }
+
+    if (0 == strncmp("0", init_world + i, 1)) {
+      world_history[i] = 0;
+    } else if (0 == strncmp("1", init_world + i, 1)) {
+      world_history[i] = 1;
+    } else if (0 == strncmp("\0", init_world + i, 1)) {
+      return world_history;
+    } else {
+      fprintf(stderr,
+              "Invalid initial state"); // FIXME: show the offending character.
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  return world_history;
+}
+
 void print_world(char *world_history, const unsigned long size,
                  const unsigned long step_number) {
   /*
@@ -34,35 +69,6 @@ void print_world(char *world_history, const unsigned long size,
       printf("%d%s", v, terminator);
     }
     printf(" ");
-  }
-}
-
-void init_step(char *world_history, const unsigned long size,
-               const char *init_world) {
-  bool completely_uninitialized = false;
-  unsigned long init_size = 0;
-  if (NULL != init_world)
-    init_size = strlen(init_world);
-  else
-    completely_uninitialized = true;
-
-  for (unsigned long i = 0; i < size * size; i++) {
-    if (completely_uninitialized || i >= init_size) {
-      world_history[i] = 0;
-      continue;
-    }
-
-    if (0 == strncmp("0", init_world + i, 1)) {
-      world_history[i] = 0;
-    } else if (0 == strncmp("1", init_world + i, 1)) {
-      world_history[i] = 1;
-    } else if (0 == strncmp("\0", init_world + i, 1)) {
-      return;
-    } else {
-      fprintf(stderr,
-              "Invalid initial state"); // FIXME: show the offending character.
-      exit(EXIT_FAILURE);
-    }
   }
 }
 
