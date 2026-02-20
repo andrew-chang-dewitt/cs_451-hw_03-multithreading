@@ -85,6 +85,33 @@ void step_part(char *cur_step, unsigned long part_start, unsigned long part_end,
  * private definitions
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+char cell_calc_next_val(char *cur_step, const unsigned long world_size,
+                        unsigned long x, unsigned long y) {
+#undef VERBOSE
+#ifdef VERBOSE
+  printf("\n[cell_calc_next_val()] END\n");
+  printf("(%s:%d)\n\n", __FILE__, __LINE__);
+#endif
+#define VERBOSE
+  const unsigned char ln = step_living_neighbours(cur_step, world_size, x, y);
+  char state = step_get_value(cur_step, world_size, x, y);
+  if (1 == state) {
+    if (ln < 2) {
+      state = 0;
+    } else if (2 == ln || 3 == ln) {
+      state = 1;
+    } else if (ln > 3) {
+      state = 0;
+    }
+  } else if (0 == state) {
+    if (3 == ln) {
+      state = 1;
+    }
+  }
+
+  return state;
+}
+
 char step_get_value(char *step_state, const unsigned long size,
                     const unsigned long x, const unsigned long y) {
   // FIXME assert x >= 0
@@ -199,31 +226,4 @@ unsigned char step_living_neighbours(char *step_state, const unsigned long size,
   }
 
   return result;
-}
-
-char cell_calc_next_val(char *cur_step, const unsigned long world_size,
-                        unsigned long x, unsigned long y) {
-#undef VERBOSE
-#ifdef VERBOSE
-  printf("\n[cell_calc_next_val()] END\n");
-  printf("(%s:%d)\n\n", __FILE__, __LINE__);
-#endif
-#define VERBOSE
-  const unsigned char ln = step_living_neighbours(cur_step, world_size, x, y);
-  char state = step_get_value(cur_step, world_size, x, y);
-  if (1 == state) {
-    if (ln < 2) {
-      state = 0;
-    } else if (2 == ln || 3 == ln) {
-      state = 1;
-    } else if (ln > 3) {
-      state = 0;
-    }
-  } else if (0 == state) {
-    if (3 == ln) {
-      state = 1;
-    }
-  }
-
-  return state;
 }
