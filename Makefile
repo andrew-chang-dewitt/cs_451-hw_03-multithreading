@@ -30,6 +30,11 @@ else
 	OUT_DIR  = $(TGT_DIR)$(REL_DIR)
 endif
 
+# turn on pretty printing if specified in env
+ifeq ($(PRETTY),true)
+	CFLAGS  += -D PRETTY
+endif
+
 BIN_DIR   := $(OUT_DIR)/bin
 OBJ_DIR   := $(OUT_DIR)/obj
 DEP_DIR   := $(OUT_DIR)/dep
