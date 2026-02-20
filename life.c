@@ -40,6 +40,9 @@ blinker:
 #ifndef WORLDH
 #include "world.h"
 #endif
+#ifndef STEPH
+#include "step.h"
+#endif
 
 int main(int argc, char *const *argv) {
   Config cfg = parse_args(argc, argv);

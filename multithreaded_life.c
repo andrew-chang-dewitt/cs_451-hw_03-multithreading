@@ -17,17 +17,24 @@
 
 
 gcc life.c -o life # -pg
-valgrind -s --leak-check=full --show-leak-kinds=all ./life -s 20 -c 20 -i
-010000000001000000000010000000010000000011100000000100000000 > life.out
+valgrind -s --leak-check=full --show-leak-kinds=all \
+  ./life -s 20 -c 20 \
+  -i 010000000001000000000010000000010000000011100000000100000000
+
 ./life -s 3 -c 3 -i 011001010
+
 ./life -s 5 -c 10 -i 011001010110101111
-./life -s 20 -c 10 -i
-011001010110101111011001010110101111010111101010101111100110111 Glider and
-blinker:
-./life -s 20 -c 20 -i
-010000000001000000000010000000010000000011100000000100000000 Bee-hive and loaf:
-./life -s 10 -c 100 -i
-010000000001000000000010000000010000000011100000000100000000 > life.out
+
+./life -s 20 -c 10 \
+  -i 011001010110101111011001010110101111010111101010101111100110111
+
+# Glider and blinker:
+./life -s 20 -c 20 \
+  -i 010000000001000000000010000000010000000011100000000100000000
+
+# Bee-hive and loaf:
+./life -s 10 -c 100 \
+  -i 010000000001000000000010000000010000000011100000000100000000
 */
 
 #include <stdbool.h>
@@ -36,6 +43,9 @@ blinker:
 
 #ifndef ARGH
 #include "args.h"
+#endif
+#ifndef STEPH
+#include "step.h"
 #endif
 #ifndef WORLDH
 #include "world.h"
@@ -47,10 +57,36 @@ int main(int argc, char *const *argv) {
 
   print_world(world_history, cfg.size, 0);
   printf("\n");
+  char *cur_step;
+  char *new_step = world_history;
+  unsigned long part_start;
+  unsigned long part_end;
 
+  // TODO: make this actually multithreaded!
+  // - needs to allow each thread to run its _own_ loop, calling step_part for
+  //   each step until all cycles completed, then calling pthread_exit
+  //   in that thread...
+  // - will require first making an array of pthread_t's created w/
+  //   pthread_create (one thread for each partition), passing a function
+  //   containing the loop logic & a part start offset & part end offset
+  // - main thread will need to coordinate that each thread waits for the
+  //   others to be ready before moving on to the next step; this might be
+  //   doable using pthread_barrier_wait?
   for (unsigned long i = 1; i < cfg.cycles; i++) {
-    step(world_history + (i - 1) * cfg.size * cfg.size, cfg.size,
-         world_history + i * cfg.size * cfg.size);
+    // move step pointers ahead one step
+    cur_step = new_step;
+    new_step = cur_step + (cfg.size * cfg.size);
+    // & start part offset back beginning of step
+    part_start = 0;
+
+    for (unsigned long p = 0; p < cfg.num_parts; p++) {
+      // lookup part end offset in parts size array
+      part_end = part_start + cfg.parts[p];
+      step_part(cur_step, part_start, part_end, cfg.size, new_step);
+      // shift part end to start
+      part_start = part_end;
+    }
+
     print_world(world_history, cfg.size, i);
     printf("\n");
   }

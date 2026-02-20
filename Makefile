@@ -7,7 +7,7 @@ CFLAGS    += -Wall -Wextra -Wformat=2 -Wswitch-default -Wcast-align \
 	     -Wconversion -Wunreachable-code -Wstrict-aliasing=2 -fno-common \
 	     -fstrict-aliasing -std=c99 -pedantic
 	     
-DBG_FLAGS  = -O0 -g -include stdbool.h
+DBG_FLAGS  = -O0 -g -include stdbool.h -D VERBOSE
 REL_FLAGS  = -O3
 PRF_FLAGS  = -pg
 

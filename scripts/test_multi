@@ -11,7 +11,9 @@ life_dir=$prj_root
 life_exe=$rel_bin_dir/multithreaded_life
 life_dbg=$dbg_bin_dir/multithreaded_life
 
-args=" -s 3 -c 5 -i 011110010"
+# args=" -s 3 -c 5 -i 011110010"
+# blinker
+args=" -s 3 -c 10 -i 010010010 -g 3"
 # args="-s 20 -c 100 -i 011001010110101111011001010110101111010111101010101111100110111"
 
 # build
