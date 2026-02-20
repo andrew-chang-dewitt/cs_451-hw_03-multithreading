@@ -56,16 +56,31 @@ void print_world(char *world_history, const unsigned long size,
       printf("\n");
     }
   */
+#ifdef PRETTY
   for (unsigned long y = 0; y < size; y++) {
     for (unsigned long x = 0; x < size; x++) {
       char v = world_get_value(world_history, size, step_number, x, y);
-      char terminator[1] = "";
+      if (1 == (int)v)
+        printf("▩");
+      else
+        printf("·");
       if (x < size - 1)
-        terminator[0] = ',';
-      printf("%d%s", v, terminator);
+        printf(" ");
+    }
+    printf("\n");
+  }
+  printf("\n");
+#else
+  for (unsigned long y = 0; y < size; y++) {
+    for (unsigned long x = 0; x < size; x++) {
+      char v = world_get_value(world_history, size, step_number, x, y);
+      printf("%d", v);
+      if (x < size - 1)
+        printf(",");
     }
     printf(" ");
   }
+#endif
 }
 
 char world_get_value(char *world_history, const unsigned long size,
