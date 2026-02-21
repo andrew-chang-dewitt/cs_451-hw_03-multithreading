@@ -3,115 +3,87 @@
 prj_root=`dirname $(realpath "$0")`/..
 tgt_dir=$prj_root/target
 
-life_tgt_dir=$tgt_dir/life
-life_rel_dir=$life_tgt_dir/release
-life_rel_bin_dir=$life_rel_dir/bin
-life_dbg_dir=$life_tgt_dir/debug
-life_dbg_bin_dir=$life_dbg_dir/bin
-life_gmon_dir=$life_tgt_dir/gmon
+rel_dir=$tgt_dir/release
+rel_bin_dir=$rel_dir/bin
+dbg_dir=$tgt_dir/debug
+dbg_bin_dir=$dbg_dir/bin
+gmon_dir=$tgt_dir/gmon
 
-life_dir=$prj_root/life
-life_exe=$life_rel_bin_dir/life
-life_dbg=$life_dbg_bin_dir/life
-
-part_tgt_dir=$tgt_dir/part
-part_rel_dir=$part_tgt_dir/release
-part_rel_bin_dir=$part_rel_dir/bin
-part_dbg_dir=$part_tgt_dir/debug
-part_dbg_bin_dir=$part_dbg_dir/bin
-part_gmon_dir=$part_tgt_dir/gmon
-
-part_dir=$prj_root/part
-part_exe=$part_rel_bin_dir/partitioned_life
-part_dbg=$part_dbg_bin_dir/partitioned_life
+multi_exe=$rel_bin_dir/multithreaded_life
+multi_dbg=$dbg_bin_dir/multithreaded_life
+gran_exe=$rel_bin_dir/granular_multithreaded_life
+gran_dbg=$dbg_bin_dir/granular_multithreaded_life
 
 report_dir=$prj_root/report
 
-# cmd="./life -c 100"
-# cmd="./life -s 3 -c 100 -i 011001010"
-args="-s 20 -c 100 -i 011001010110101111011001010110101111010111101010101111100110111"
+# glider & blinker
+args=" -s 50 -c 100 -i 010000000000000000000000000000000000000000000000000010001110000000000000000000000000000000000000000011100000000000000000000000000000000000000000000000"
 
-# clear & reset report directory
+# clear & reset report & target directories
 cd $prj_root
-rm -rf $report_dir
-sudo -u andrew mkdir -p $report_dir
-rm -rf $tgt_dir
+rm -rf $report_dir || { x=$? printf "\nfailed while building, bailing...\n\n\n"; exit $x; }
+rm -rf $tgt_dir || { x=$? printf "\nfailed while building, bailing...\n\n\n"; exit $x; }
+mkdir -p $report_dir || { x=$? printf "\nfailed while building, bailing...\n\n\n"; exit $x; }
 
-# build hello_compartment & run it
-printf "Building libcompart..."
-cd $prj_root/libcompart
-sudo -u andrew make clean > /dev/null 2>&1
-sudo -u andrew make > /dev/null 2>&1
-printf "...and hello_compartment..."
-cd $hello_dir
-sudo -u andrew make clean > /dev/null 2>&1
-sudo -u andrew make > $report_dir/a.out 2> $report_dir/a.err
-cd $prj_root
-printf "...done.\n"
-echo ""
-printf "Running hello_compartment..."
-# running $hello_exe requires elevated privileges; if this script is not run as
-# sudo, it will fail
-$hello_exe >/dev/null 2>&1
+# build multi
+printf "Building multithreaded_life binaries..."
+goal=multi
+step=a
+make $goal > $report_dir/$step.out 2> $report_dir/$step.err || { x=$? printf "\nfailed while building $goal (step $step), bailing...\n\n\n"; exit $x; }
+make PRF=true $goal > /dev/null 2>&1 || { x=$? printf "\nfailed while building PRF $goal, bailing...\n\n\n"; exit $x; }
 printf "...done.\n"
 echo ""
 
-# build
-printf "Building life binaries..."
-cd $life_dir
-sudo -u andrew make life > $report_dir/b.out 2> $report_dir/b.err
-sudo -u andrew make PRF=true life > /dev/null 2>&1
-cd $prj_root
+# run tests on multi
+printf "Measuring multi runtime..."
+step=b
+{ time $multi_exe $args; } > $report_dir/$step.out 2> $report_dir/$step.err || { x=$? printf "\nfailed while measuring time (step $step), bailing...\n\n\n"; exit $x; }
 printf "...done.\n"
 echo ""
-
-# run tests
-printf "Measuring life runtime..."
-touch $report_dir/c.out
-{ time $life_exe $args; } > $report_dir/c.out 2> $report_dir/c.err
+printf "Checking multi for memory leaks..."
+step=c
+valgrind --leak-check=full $multi_exe $args > $report_dir/$step.out 2> $report_dir/$step.err || { x=$? printf "\nfailed while checking mem (step $step), bailing...\n\n\n"; exit $x; }
 printf "...done.\n"
 echo ""
-printf "Checking life for memory leaks..."
-sudo -u andrew valgrind $life_exe $args > $report_dir/d.out 2> $report_dir/d.err
-printf "...done.\n"
-echo ""
-printf "Profiling life..."
-mkdir -p $life_gmon_dir
-chown root $life_gmon_dir
-cd $life_gmon_dir
-$life_dbg $args > /dev/null 2>&1
-sudo -u andrew gprof $life_dbg gmon.out > $report_dir/e.out 2> $report_dir/e.err
-printf "...done.\n"
-echo ""
-
-# build
-printf "Building partitioned_life binaries..."
-cd $part_dir
-touch $report_dir/f.out
-sudo -u andrew make part > $report_dir/f.out 2> $report_dir/f.err
-sudo -u andrew make PRF=true part > /dev/null 2>&1
+printf "Profiling multi..."
+step=d
+mkdir -p $gmon_dir
+cd $gmon_dir
+$multi_dbg $args > /dev/null 2>&1 || { x=$? printf "\nfailed while profiling (step $step), bailing...\n\n\n"; exit $x; }
+gprof $multi_dbg gmon.out > $report_dir/$step.out 2> $report_dir/$step.err || { x=$? printf "\nfailed while profiling (step $step), bailing...\n\n\n"; exit $x; }
 cd $prj_root
 printf "...done.\n"
 echo ""
 
-# run tests
-printf "Measuring partitioned_life runtime..."
-touch $report_dir/g.out
-{ time $part_exe $args; } > $report_dir/g.out 2> $report_dir/g.err
+# build gran
+printf "Building granular_multithreaded_life binaries..."
+goal=gran
+step=e
+make $goal > $report_dir/$step.out 2> $report_dir/$step.err || { x=$? printf "\nfailed while building $goal (step $step), bailing...\n\n\n"; exit $x; }
+make PRF=true $goal > /dev/null 2>&1 || { x=$? printf "\nfailed while building PRF $goal, bailing...\n\n\n"; exit $x; }
 printf "...done.\n"
 echo ""
-printf "Checking part for memory leaks..."
-touch $report_dir/h.out
-valgrind $part_exe $args > $report_dir/h.out 2> $report_dir/h.err
+
+# run tests on gran
+printf "Measuring gran runtime..."
+step=f
+for g in {1..10}; do
+    echo "with G=$g..." >> $report_dir/$step.err
+    { time $gran_exe -g $g $args; } >> $report_dir/$step.out 2>> $report_dir/$step.err || { x=$? printf "\nfailed while measuring time (step $step), bailing...\n\n\n"; exit $x; }
+    echo "" >> $report_dir/$step.err
+done
 printf "...done.\n"
 echo ""
-printf "Profiling part..."
-cd $part_dbg_bin_dir
-touch $report_dir/i.out
-mkdir -p $part_gmon_dir
-chown root $part_gmon_dir
-cd $part_gmon_dir
-$part_dbg $args > /dev/null 2>&1
-sudo -u andrew gprof $part_dbg gmon.out > $report_dir/i.out 2> $report_dir/i.err
+printf "Checking gran for memory leaks..."
+step=g
+valgrind --leak-check=full $gran_exe -g 10 $args > $report_dir/$step.out 2> $report_dir/$step.err || { x=$? printf "\nfailed while checking mem (step $step), bailing...\n\n\n"; exit $x; }
+printf "...done.\n"
+echo ""
+printf "Profiling gran..."
+step=h
+mkdir -p $gmon_dir
+cd $gmon_dir
+$gran_dbg -g 10 $args > /dev/null 2>&1 || { x=$? printf "\nfailed while profiling (step $step), bailing...\n\n\n"; exit $x; }
+gprof $gran_dbg gmon.out > $report_dir/$step.out 2> $report_dir/$step.err || { x=$? printf "\nfailed while profiling (step $step), bailing...\n\n\n"; exit $x; }
 printf "...done.\n"
 echo ""

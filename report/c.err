@@ -1,0 +1,14 @@
+==327792== Memcheck, a memory error detector
+==327792== Copyright (C) 2002-2022, and GNU GPL'd, by Julian Seward et al.
+==327792== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==327792== Command: /home/andrew/college/cs_451-parallel_distributed/hw/hw_03/scripts/../target/release/bin/multithreaded_life -s 50 -c 100 -i 010000000000000000000000000000000000000000000000000010001110000000000000000000000000000000000000000011100000000000000000000000000000000000000000000000
+==327792== 
+==327792== 
+==327792== HEAP SUMMARY:
+==327792==     in use at exit: 0 bytes in 0 blocks
+==327792==   total heap usage: 8 allocs, 8 frees, 255,367 bytes allocated
+==327792== 
+==327792== All heap blocks were freed -- no leaks are possible
+==327792== 
+==327792== For lists of detected and suppressed errors, rerun with: -s
+==327792== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
