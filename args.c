@@ -10,10 +10,7 @@
 #endif
 
 const Config default_config = {
-    .size = 5,
-    .cycles = 5,
-    // TODO: change default to 4
-    .num_parts = 1,
+    .size = 5, .cycles = 5, .num_parts = 4,
     // .parts is NULL
     // .init_world is NULL
 };
@@ -35,7 +32,7 @@ Config parse_args(const int argc, char *const *argv) {
       config.cycles = strtoul(optarg, NULL, 10);
       break;
     case 'g': // how many parts to break each step into
-      config.num_parts = strtoul(optarg, NULL, 10);
+      config.num_parts = (unsigned int)strtoul(optarg, NULL, 10);
       break;
     default:
       // FIXME: print error message.
@@ -46,9 +43,9 @@ Config parse_args(const int argc, char *const *argv) {
 
   assert(config.size > 1);
   assert(config.cycles > 1);
+
   // exit error more parts than rows/columns in world
   assert(config.size >= config.num_parts);
-
   // calculate size of each part
   config.parts = malloc(config.num_parts * sizeof(*config.parts));
 

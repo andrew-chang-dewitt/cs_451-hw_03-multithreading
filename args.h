@@ -3,7 +3,7 @@
 typedef struct {
   unsigned long size;
   unsigned long cycles;
-  unsigned long num_parts;
+  unsigned int num_parts;
   unsigned long *parts;
   char *init_world;
 } Config;

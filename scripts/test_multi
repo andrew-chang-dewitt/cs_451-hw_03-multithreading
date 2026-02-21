@@ -12,18 +12,20 @@ life_exe=$rel_bin_dir/multithreaded_life
 life_dbg=$dbg_bin_dir/multithreaded_life
 
 # blinker
-# args=" -s 3 -c 10 -g 1 -i 000111"
+# args=" -s 6 -c 3 -i 000000111"
 # glider & blinker
-args=" -s 10 -c 10 -g 4 -i 010000000000100011101110000000"
+# args=" -s 10 -c 100 -i 010000000000100011101110000000"
+args=" -s 50 -c 100 -i 010000000000000000000000000000000000000000000000000010001110000000000000000000000000000000000000000011100000000000000000000000000000000000000000000000"
 
 # build
 echo "Building life binaries..."
 echo ""
 cd $life_dir
-make PRETTY=true DBG=true multi || { x=$? printf "failed while building, bailing...\n\n\n"; exit $x; }
+make VERBOSE=true PRETTY=true DBG=true multi || { x=$? printf "\nfailed while building, bailing...\n\n\n"; exit $x; }
+echo ""
 echo "Executing multi w/ args '$args'..."
 echo ""
-$life_dbg $args || { x=$? printf "failed while executing '$args', bailing...\n\n\n"; exit $x; }
+$life_dbg $args || { x=$? printf "\nfailed while executing '$args', bailing...\n\n\n"; exit $x; }
 echo ""
 echo "done."
 echo ""

@@ -7,7 +7,7 @@ CFLAGS    += -Wall -Wextra -Wformat=2 -Wswitch-default -Wcast-align \
 	     -Wconversion -Wunreachable-code -Wstrict-aliasing=2 -fno-common \
 	     -fstrict-aliasing -std=c99 -pedantic
 	     
-DBG_FLAGS  = -O0 -g -include stdbool.h -D VERBOSE
+DBG_FLAGS  = -O0 -g -include stdbool.h
 REL_FLAGS  = -O3
 PRF_FLAGS  = -pg
 
@@ -28,6 +28,11 @@ else ifeq ($(PRF),true)
 else
 	CFLAGS  += $(REL_FLAGS)
 	OUT_DIR  = $(TGT_DIR)$(REL_DIR)
+endif
+
+# turn on verbose print debugging if specified in env
+ifeq ($(VERBOSE),true)
+	CFLAGS  += -D VERBOSE
 endif
 
 # turn on pretty printing if specified in env
@@ -94,16 +99,16 @@ list:
 # automatically generate dependencies, from
 # https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/#tldr
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(DEP_DIR)/%.d | $(DEP_DIR)
-	@echo "compiling dependency $@ from $^..."
+	@echo "compiling dependency..."
 	$(CC) $(DEP_FLAGS) $(CFLAGS) -c $< -o $@
 	@echo "...dependency $@ built."
 
 
 
 $(BIN_DIR)/%: $(SRC_DIR)/%.c $(DEP_DIR)/%.d $(OBJS) | $(BIN_DIR) $(DEP_DIR) $(OBJ_DIR)
-	@echo "building binary $@ from $^..."
+	@echo "building binary..."
 	$(CC) $(CFLAGS) $(CMPT_FLAGS) $< $($<:%.c=%.h) $(OBJS) -o $@
-	@echo "... $@ built."
+	@echo "...binary $@ built."
 
 clean:
 	rm -rf $(TGT_DIR)
